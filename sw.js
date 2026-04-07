@@ -1,9 +1,11 @@
-const CACHE_NAME = 'memo-calendar-v3';
+const CACHE_NAME = 'memo-calendar-v4';
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
   './js/storage.js',
+  './js/holidays.js',
+  './js/weather.js',
   './js/calendar.js',
   './js/memo.js',
   './js/notification.js',

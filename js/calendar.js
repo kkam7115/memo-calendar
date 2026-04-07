@@ -1,24 +1,49 @@
-// calendar.js - 캘린더 렌더링, 주간뷰, D-day, 통계
+// calendar.js - 캘린더 렌더링, 주간뷰, D-day, 통계, 공휴일, 스와이프삭제
 const Calendar = {
   currentYear: new Date().getFullYear(),
   currentMonth: new Date().getMonth(),
   selectedDate: null,
-  viewMode: 'month', // 'month' or 'week'
+  viewMode: 'month',
   weekStart: null,
   MAX_MINI_MEMOS: 2,
+  WEEKDAYS_KR: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
 
   MONTH_NAMES: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
                 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
-  MONTH_NAMES_KR: ['1월', '2월', '3월', '4월', '5월', '6월',
-                    '7월', '8월', '9월', '10월', '11월', '12월'],
 
   init() {
     const today = new Date();
     this.selectedDate = this._formatDate(today);
     this.weekStart = this._getWeekStart(today);
+    this._initYearSelect();
+    this.updateTodayBadge();
     this.render();
     this.renderScheduleList();
     this.renderStats();
+  },
+
+  updateTodayBadge() {
+    const now = new Date();
+    document.getElementById('badgeDay').textContent = now.getDate();
+    document.getElementById('badgeWeekday').textContent = this.WEEKDAYS_KR[now.getDay()];
+    document.getElementById('badgeFull').textContent =
+      `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
+  },
+
+  _initYearSelect() {
+    const sel = document.getElementById('yearSelect');
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear - 5; y <= currentYear + 10; y++) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y + '년';
+      if (y === this.currentYear) opt.selected = true;
+      sel.appendChild(opt);
+    }
+    sel.addEventListener('change', () => {
+      this.currentYear = parseInt(sel.value);
+      this.refresh();
+    });
   },
 
   goToday() {
@@ -27,9 +52,8 @@ const Calendar = {
     this.currentMonth = today.getMonth();
     this.selectedDate = this._formatDate(today);
     this.weekStart = this._getWeekStart(today);
-    this.render();
-    this.renderScheduleList();
-    this.renderStats();
+    document.getElementById('yearSelect').value = this.currentYear;
+    this.refresh();
   },
 
   setView(mode) {
@@ -49,9 +73,8 @@ const Calendar = {
       this.currentMonth--;
       if (this.currentMonth < 0) { this.currentMonth = 11; this.currentYear--; }
     }
-    this.render();
-    this.renderScheduleList();
-    this.renderStats();
+    document.getElementById('yearSelect').value = this.currentYear;
+    this.refresh();
   },
 
   next() {
@@ -63,21 +86,16 @@ const Calendar = {
       this.currentMonth++;
       if (this.currentMonth > 11) { this.currentMonth = 0; this.currentYear++; }
     }
-    this.render();
-    this.renderScheduleList();
-    this.renderStats();
+    document.getElementById('yearSelect').value = this.currentYear;
+    this.refresh();
   },
 
   render() {
     const titleEl = document.getElementById('monthTitle');
     if (this.viewMode === 'week') {
-      const endOfWeek = new Date(this.weekStart);
-      endOfWeek.setDate(endOfWeek.getDate() + 6);
-      const sm = this.weekStart.getMonth() + 1;
-      const sd = this.weekStart.getDate();
-      const em = endOfWeek.getMonth() + 1;
-      const ed = endOfWeek.getDate();
-      titleEl.textContent = `${sm}/${sd} - ${em}/${ed}`;
+      const end = new Date(this.weekStart);
+      end.setDate(end.getDate() + 6);
+      titleEl.textContent = `${this.weekStart.getMonth()+1}/${this.weekStart.getDate()} - ${end.getMonth()+1}/${end.getDate()}`;
       this._renderWeek();
     } else {
       titleEl.textContent = `${this.MONTH_NAMES[this.currentMonth]} ${this.currentYear}`;
@@ -99,12 +117,12 @@ const Calendar = {
       const day = daysInPrevMonth - i;
       const m = this.currentMonth === 0 ? 11 : this.currentMonth - 1;
       const y = this.currentMonth === 0 ? this.currentYear - 1 : this.currentYear;
-      container.appendChild(this._createDayEl(day, this._fmtParts(y, m, day), true));
+      container.appendChild(this._createDayEl(day, this._fmtParts(y, m, day), true, todayStr));
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = this._fmtParts(this.currentYear, this.currentMonth, d);
-      const el = this._createDayEl(d, dateStr, false);
+      const el = this._createDayEl(d, dateStr, false, todayStr);
       const dow = new Date(this.currentYear, this.currentMonth, d).getDay();
       if (dow === 0) el.classList.add('sunday');
       if (dow === 6) el.classList.add('saturday');
@@ -118,7 +136,7 @@ const Calendar = {
     for (let d = 1; d <= remaining; d++) {
       const m = this.currentMonth === 11 ? 0 : this.currentMonth + 1;
       const y = this.currentMonth === 11 ? this.currentYear + 1 : this.currentYear;
-      container.appendChild(this._createDayEl(d, this._fmtParts(y, m, d), true));
+      container.appendChild(this._createDayEl(d, this._fmtParts(y, m, d), true, todayStr));
     }
   },
 
@@ -132,7 +150,7 @@ const Calendar = {
       const d = new Date(this.weekStart);
       d.setDate(d.getDate() + i);
       const dateStr = this._formatDate(d);
-      const el = this._createDayEl(d.getDate(), dateStr, false);
+      const el = this._createDayEl(d.getDate(), dateStr, false, todayStr);
       if (d.getDay() === 0) el.classList.add('sunday');
       if (d.getDay() === 6) el.classList.add('saturday');
       if (dateStr === todayStr) el.classList.add('today');
@@ -142,7 +160,7 @@ const Calendar = {
     }
   },
 
-  _createDayEl(day, dateStr, isOtherMonth) {
+  _createDayEl(day, dateStr, isOtherMonth, todayStr) {
     const el = document.createElement('div');
     el.className = 'day' + (isOtherMonth ? ' other-month' : '');
     el.dataset.date = dateStr;
@@ -150,13 +168,31 @@ const Calendar = {
     const numEl = document.createElement('div');
     numEl.className = 'day-number';
     numEl.textContent = day;
+
+    // 공휴일 체크
+    const holiday = Holidays.getHoliday(dateStr);
+    if (holiday) {
+      el.classList.add('holiday');
+      numEl.title = holiday;
+    }
+
     el.appendChild(numEl);
 
+    // 공휴일 이름 표시
+    if (holiday && !isOtherMonth) {
+      const holEl = document.createElement('div');
+      holEl.className = 'mini-memo holiday-label';
+      holEl.textContent = holiday;
+      el.appendChild(holEl);
+    }
+
+    // Mini memos
     const memos = Storage.getMemos(dateStr);
     if (memos.length > 0) {
       const miniContainer = document.createElement('div');
       miniContainer.className = 'mini-memos';
-      const showCount = Math.min(memos.length, this.MAX_MINI_MEMOS);
+      const maxShow = holiday ? 1 : this.MAX_MINI_MEMOS;
+      const showCount = Math.min(memos.length, maxShow);
       for (let i = 0; i < showCount; i++) {
         const miniEl = document.createElement('div');
         miniEl.className = 'mini-memo ' + memos[i].category;
@@ -164,10 +200,10 @@ const Calendar = {
         miniEl.textContent = memos[i].title;
         miniContainer.appendChild(miniEl);
       }
-      if (memos.length > this.MAX_MINI_MEMOS) {
+      if (memos.length > maxShow) {
         const moreEl = document.createElement('div');
         moreEl.className = 'memo-more';
-        moreEl.textContent = `+${memos.length - this.MAX_MINI_MEMOS}`;
+        moreEl.textContent = `+${memos.length - maxShow}`;
         miniContainer.appendChild(moreEl);
       }
       el.appendChild(miniContainer);
@@ -230,20 +266,20 @@ const Calendar = {
       } else {
         html += `<div class="schedule-dot ${memo.category}"></div>`;
       }
-
       html += `<span class="schedule-date">${month}/${day}</span>`;
       html += `<span class="schedule-text">${this._escapeHtml(memo.title)}</span>`;
 
-      // D-day 표시
       if (!memo.done && diffDays >= 0 && memo.category !== 'idea') {
         let ddayText = diffDays === 0 ? 'D-DAY' : `D-${diffDays}`;
         let ddayClass = diffDays === 0 ? 'dday-today' : (diffDays <= 3 ? 'dday-soon' : 'dday');
         html += `<span class="${ddayClass}">${ddayText}</span>`;
       }
-
       if (memo.time) html += `<span class="schedule-time">${memo.time}</span>`;
 
       item.innerHTML = html;
+
+      // 스와이프 삭제
+      this._bindSwipeDelete(item, memo.date, memo.id);
 
       item.addEventListener('click', (e) => {
         if (e.target.classList.contains('todo-check')) return;
@@ -260,6 +296,48 @@ const Calendar = {
       }
 
       container.appendChild(item);
+    });
+  },
+
+  // 스와이프 삭제
+  _bindSwipeDelete(el, dateStr, memoId) {
+    let startX = 0, currentX = 0, swiping = false;
+
+    el.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      currentX = startX;
+      swiping = true;
+      el.style.transition = 'none';
+    }, { passive: true });
+
+    el.addEventListener('touchmove', (e) => {
+      if (!swiping) return;
+      currentX = e.touches[0].clientX;
+      const diff = currentX - startX;
+      if (diff < 0) {
+        el.style.transform = `translateX(${Math.max(diff, -120)}px)`;
+        if (diff < -60) {
+          el.style.background = 'rgba(255,68,68,0.2)';
+        }
+      }
+    }, { passive: true });
+
+    el.addEventListener('touchend', () => {
+      swiping = false;
+      const diff = currentX - startX;
+      el.style.transition = 'transform 0.3s, background 0.3s';
+
+      if (diff < -100) {
+        el.style.transform = 'translateX(-100%)';
+        el.style.opacity = '0';
+        setTimeout(() => {
+          Storage.deleteMemo(dateStr, memoId);
+          this.refresh();
+        }, 300);
+      } else {
+        el.style.transform = '';
+        el.style.background = '';
+      }
     });
   },
 
@@ -307,12 +385,10 @@ const Calendar = {
       const parts = memo.date.split('-');
       const item = document.createElement('div');
       item.className = 'schedule-item';
-
       let html = `<div class="schedule-dot ${memo.category}"></div>`;
       html += `<span class="schedule-date">${parseInt(parts[1])}/${parseInt(parts[2])}</span>`;
       html += `<span class="schedule-text">${this._escapeHtml(memo.title)}</span>`;
       if (memo.time) html += `<span class="schedule-time">${memo.time}</span>`;
-
       item.innerHTML = html;
       item.addEventListener('click', () => Memo.openEdit(memo.date, memo.id));
       container.appendChild(item);

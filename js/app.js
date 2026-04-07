@@ -11,6 +11,7 @@
   Calendar.init();
   Memo.init();
   NotificationManager.init();
+  Weather.fetchWeather();
 
   // Navigation
   document.getElementById('prevMonth').addEventListener('click', () => Calendar.prev());

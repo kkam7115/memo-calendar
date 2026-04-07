@@ -60,6 +60,16 @@ const Memo = {
     document.getElementById('repeatEndGroup').style.display = 'none';
     document.getElementById('memoDelete').style.display = 'block';
 
+    // 할일 완료 버튼 표시
+    const doneBtn = document.getElementById('memoDone');
+    if (memo.category === 'todo') {
+      doneBtn.style.display = 'block';
+      doneBtn.textContent = memo.done ? '↩ 미완료' : '✓ 완료';
+      doneBtn.className = memo.done ? 'btn btn-delete' : 'btn btn-done';
+    } else {
+      doneBtn.style.display = 'none';
+    }
+
     this._setCategory(memo.category);
     this._closeDayMemoSheet();
     this._openSheet('bottomSheet');
@@ -201,6 +211,14 @@ const Memo = {
       this._save();
     });
     document.getElementById('memoDelete').addEventListener('click', () => this._delete());
+
+    document.getElementById('memoDone').addEventListener('click', () => {
+      if (this.currentDate && this.currentMemoId) {
+        Storage.toggleDone(this.currentDate, this.currentMemoId);
+        this._closeSheet('bottomSheet');
+        Calendar.refresh();
+      }
+    });
   },
 
   _bindClose() {

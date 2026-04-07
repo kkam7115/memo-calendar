@@ -16,9 +16,27 @@
   <div id="app">
     <!-- Header -->
     <header class="header">
+      <!-- Today Badge + Weather -->
+      <div class="today-badge" id="todayBadge">
+        <div class="badge-date">
+          <span class="badge-day" id="badgeDay">7</span>
+          <div class="badge-info">
+            <span class="badge-weekday" id="badgeWeekday">월요일</span>
+            <span class="badge-full" id="badgeFull">2026년 4월 7일</span>
+          </div>
+        </div>
+        <div class="badge-weather" id="badgeWeather">
+          <span class="weather-icon" id="weatherIcon">--</span>
+          <span class="weather-temp" id="weatherTemp">--°</span>
+        </div>
+      </div>
+
       <div class="header-top">
         <button class="icon-btn" id="themeToggle" title="테마 전환">🌙</button>
-        <h1 class="month-title" id="monthTitle">APR 2026</h1>
+        <div class="month-selector">
+          <h1 class="month-title" id="monthTitle">APR 2026</h1>
+          <select class="year-select" id="yearSelect"></select>
+        </div>
         <button class="icon-btn" id="settingsBtn" title="설정">⚙</button>
       </div>
       <div class="header-nav">
@@ -184,6 +202,7 @@
 
         <div class="form-actions">
           <button type="button" class="btn btn-delete" id="memoDelete" style="display:none">삭제</button>
+          <button type="button" class="btn btn-done" id="memoDone" style="display:none">✓ 완료</button>
           <button type="submit" class="btn btn-save">저장</button>
         </div>
       </form>
@@ -235,6 +254,8 @@
   </div>
 
   <script src="./js/storage.js"></script>
+  <script src="./js/holidays.js"></script>
+  <script src="./js/weather.js"></script>
   <script src="./js/calendar.js"></script>
   <script src="./js/memo.js"></script>
   <script src="./js/notification.js"></script>
