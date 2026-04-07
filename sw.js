@@ -1,14 +1,14 @@
-const CACHE_NAME = 'memo-calendar-v1';
+const CACHE_NAME = 'memo-calendar-v2';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/storage.js',
-  '/js/calendar.js',
-  '/js/memo.js',
-  '/js/notification.js',
-  '/js/app.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './css/style.css',
+  './js/storage.js',
+  './js/calendar.js',
+  './js/memo.js',
+  './js/notification.js',
+  './js/app.js',
+  './manifest.json'
 ];
 
 // Install - cache assets
@@ -42,7 +42,7 @@ self.addEventListener('fetch', (e) => {
       });
     }).catch(() => {
       if (e.request.destination === 'document') {
-        return caches.match('/index.html');
+        return caches.match('./index.html');
       }
     })
   );
@@ -56,7 +56,7 @@ self.addEventListener('notificationclick', (e) => {
       if (clients.length > 0) {
         clients[0].focus();
       } else {
-        self.clients.openWindow('/');
+        self.clients.openWindow('./');
       }
     })
   );

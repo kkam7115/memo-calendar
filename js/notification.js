@@ -97,8 +97,8 @@ const NotificationManager = {
     if (Notification.permission === 'granted') {
       new Notification(title, {
         body,
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
+        icon: './icons/icon.svg',
+        badge: './icons/icon.svg',
         vibrate: [200, 100, 200]
       });
     }
