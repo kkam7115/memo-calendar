@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1a1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>메모 캘린더</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <button class="nav-btn" id="prevMonth">&lt;</button>
+      <h1 class="month-title" id="monthTitle">APR 2026</h1>
+      <button class="nav-btn" id="nextMonth">&gt;</button>
+    </header>
+
+    <!-- Calendar Grid -->
+    <div class="calendar">
+      <div class="weekdays">
+        <span class="weekday sun">SUN</span>
+        <span class="weekday">MON</span>
+        <span class="weekday">TUE</span>
+        <span class="weekday">WED</span>
+        <span class="weekday">THU</span>
+        <span class="weekday">FRI</span>
+        <span class="weekday sat">SAT</span>
+      </div>
+      <div class="days" id="calendarDays"></div>
+    </div>
+
+    <!-- Monthly Schedule List -->
+    <div class="schedule-section">
+      <h2 class="schedule-title">SCHEDULE</h2>
+      <div class="schedule-list" id="scheduleList">
+        <div class="empty-state">이번 달 일정이 없습니다</div>
+      </div>
+    </div>
+
+    <!-- FAB Button -->
+    <button class="fab" id="fabBtn">+</button>
+
+    <!-- Bottom Sheet Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Bottom Sheet - Memo Form -->
+    <div class="bottom-sheet" id="bottomSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" id="sheetTitle">새 메모</h3>
+        <button class="sheet-close" id="sheetClose">&times;</button>
+      </div>
+      <form class="memo-form" id="memoForm">
+        <input type="hidden" id="memoId">
+        <input type="hidden" id="memoDate">
+
+        <div class="form-group">
+          <label class="form-label">날짜</label>
+          <input type="date" class="form-input" id="memoDateDisplay" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">카테고리</label>
+          <div class="category-select">
+            <button type="button" class="cat-btn active" data-cat="schedule">
+              <span class="cat-dot schedule"></span>일정
+            </button>
+            <button type="button" class="cat-btn" data-cat="idea">
+              <span class="cat-dot idea"></span>아이디어
+            </button>
+            <button type="button" class="cat-btn" data-cat="todo">
+              <span class="cat-dot todo"></span>할일
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">제목</label>
+          <input type="text" class="form-input" id="memoTitle" placeholder="메모 제목" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">내용</label>
+          <textarea class="form-input form-textarea" id="memoContent" placeholder="메모 내용 (선택)"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">시간 (선택)</label>
+          <input type="time" class="form-input" id="memoTime">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">알림</label>
+          <select class="form-input" id="memoReminder">
+            <option value="none">없음</option>
+            <option value="same">당일</option>
+            <option value="1day">1일 전</option>
+            <option value="3days">3일 전</option>
+            <option value="1week" selected>1주일 전</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-delete" id="memoDelete" style="display:none">삭제</button>
+          <button type="submit" class="btn btn-save">저장</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Notification Permission Banner -->
+    <div class="notification-banner" id="notifBanner" style="display:none">
+      <span>알림을 허용하면 일정 전에 알려드립니다</span>
+      <button class="btn-notif-allow" id="notifAllow">허용</button>
+      <button class="btn-notif-dismiss" id="notifDismiss">&times;</button>
+    </div>
+  </div>
+
+  <script src="/js/storage.js"></script>
+  <script src="/js/calendar.js"></script>
+  <script src="/js/memo.js"></script>
+  <script src="/js/notification.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

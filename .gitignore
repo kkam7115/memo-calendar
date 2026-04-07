@@ -1,0 +1,5 @@
+node_modules/
+.claude/
+design-preview.html
+server.js
+icons/generate-icons.html
