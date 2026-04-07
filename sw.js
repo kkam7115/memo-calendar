@@ -1,4 +1,4 @@
-const CACHE_NAME = 'memo-calendar-v2';
+const CACHE_NAME = 'memo-calendar-v3';
 const ASSETS = [
   './',
   './index.html',

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>메모 캘린더</title>
   <link rel="manifest" href="./manifest.json">
-  <link rel="icon" type="image/png" href="./icons/icon.svg">
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
   <link rel="apple-touch-icon" href="./icons/icon.svg">
   <link rel="stylesheet" href="./css/style.css">
 </head>
@@ -16,13 +16,53 @@
   <div id="app">
     <!-- Header -->
     <header class="header">
-      <button class="nav-btn" id="prevMonth">&lt;</button>
-      <h1 class="month-title" id="monthTitle">APR 2026</h1>
-      <button class="nav-btn" id="nextMonth">&gt;</button>
+      <div class="header-top">
+        <button class="icon-btn" id="themeToggle" title="테마 전환">🌙</button>
+        <h1 class="month-title" id="monthTitle">APR 2026</h1>
+        <button class="icon-btn" id="settingsBtn" title="설정">⚙</button>
+      </div>
+      <div class="header-nav">
+        <button class="nav-btn" id="prevMonth">&lt;</button>
+        <button class="nav-btn today-btn" id="todayBtn">오늘</button>
+        <div class="view-toggle">
+          <button class="view-btn active" id="monthViewBtn">월</button>
+          <button class="view-btn" id="weekViewBtn">주</button>
+        </div>
+        <button class="nav-btn" id="nextMonth">&gt;</button>
+      </div>
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="메모 검색...">
+        <button class="search-clear" id="searchClear" style="display:none">&times;</button>
+      </div>
     </header>
 
+    <!-- Monthly Stats -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-item">
+        <span class="stat-dot schedule"></span>
+        <span class="stat-count" id="statSchedule">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-dot idea"></span>
+        <span class="stat-count" id="statIdea">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-dot todo"></span>
+        <span class="stat-count" id="statTodo">0</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item progress-item">
+        <span class="stat-label">완료</span>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="stat-count" id="statProgress">0%</span>
+      </div>
+    </div>
+
     <!-- Calendar Grid -->
-    <div class="calendar">
+    <div class="calendar" id="calendarContainer">
       <div class="weekdays">
         <span class="weekday sun">SUN</span>
         <span class="weekday">MON</span>
@@ -35,8 +75,14 @@
       <div class="days" id="calendarDays"></div>
     </div>
 
+    <!-- Search Results -->
+    <div class="search-results" id="searchResults" style="display:none">
+      <h2 class="schedule-title">검색 결과</h2>
+      <div class="schedule-list" id="searchResultList"></div>
+    </div>
+
     <!-- Monthly Schedule List -->
-    <div class="schedule-section">
+    <div class="schedule-section" id="scheduleSection">
       <h2 class="schedule-title">SCHEDULE</h2>
       <div class="schedule-list" id="scheduleList">
         <div class="empty-state">이번 달 일정이 없습니다</div>
@@ -48,6 +94,19 @@
 
     <!-- Bottom Sheet Overlay -->
     <div class="overlay" id="overlay"></div>
+
+    <!-- Day Memo List Modal -->
+    <div class="bottom-sheet" id="dayMemoSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" id="dayMemoTitle">4월 7일 메모</h3>
+        <button class="sheet-close" id="dayMemoClose">&times;</button>
+      </div>
+      <div class="day-memo-list" id="dayMemoList"></div>
+      <div class="sheet-footer">
+        <button class="btn btn-save" id="dayMemoAdd">+ 새 메모 추가</button>
+      </div>
+    </div>
 
     <!-- Bottom Sheet - Memo Form -->
     <div class="bottom-sheet" id="bottomSheet">
@@ -90,20 +149,37 @@
           <textarea class="form-input form-textarea" id="memoContent" placeholder="메모 내용 (선택)"></textarea>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">시간 (선택)</label>
-          <input type="time" class="form-input" id="memoTime">
+        <div class="form-row">
+          <div class="form-group form-half">
+            <label class="form-label">시간 (선택)</label>
+            <input type="time" class="form-input" id="memoTime">
+          </div>
+          <div class="form-group form-half">
+            <label class="form-label">알림</label>
+            <select class="form-input" id="memoReminder">
+              <option value="none">없음</option>
+              <option value="same">당일</option>
+              <option value="1day">1일 전</option>
+              <option value="3days">3일 전</option>
+              <option value="1week" selected>1주일 전</option>
+            </select>
+          </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">알림</label>
-          <select class="form-input" id="memoReminder">
-            <option value="none">없음</option>
-            <option value="same">당일</option>
-            <option value="1day">1일 전</option>
-            <option value="3days">3일 전</option>
-            <option value="1week" selected>1주일 전</option>
+          <label class="form-label">반복</label>
+          <select class="form-input" id="memoRepeat">
+            <option value="none">반복 없음</option>
+            <option value="daily">매일</option>
+            <option value="weekly">매주</option>
+            <option value="biweekly">격주</option>
+            <option value="monthly">매월</option>
           </select>
+        </div>
+
+        <div class="form-group repeat-end-group" id="repeatEndGroup" style="display:none">
+          <label class="form-label">반복 종료일</label>
+          <input type="date" class="form-input" id="memoRepeatEnd">
         </div>
 
         <div class="form-actions">
@@ -111,6 +187,43 @@
           <button type="submit" class="btn btn-save">저장</button>
         </div>
       </form>
+    </div>
+
+    <!-- Settings Sheet -->
+    <div class="bottom-sheet" id="settingsSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title">설정</h3>
+        <button class="sheet-close" id="settingsClose">&times;</button>
+      </div>
+      <div class="settings-content">
+        <div class="settings-section">
+          <h4 class="settings-label">카테고리 색상</h4>
+          <div class="color-setting">
+            <span>일정</span>
+            <input type="color" id="colorSchedule" value="#4a9eff">
+          </div>
+          <div class="color-setting">
+            <span>아이디어</span>
+            <input type="color" id="colorIdea" value="#ffd700">
+          </div>
+          <div class="color-setting">
+            <span>할일</span>
+            <input type="color" id="colorTodo" value="#ff4444">
+          </div>
+          <button class="btn btn-save" id="saveColors" style="margin-top:10px">색상 저장</button>
+        </div>
+        <div class="settings-section">
+          <h4 class="settings-label">데이터 관리</h4>
+          <div class="settings-actions">
+            <button class="btn btn-save" id="exportData">데이터 내보내기</button>
+            <label class="btn btn-save import-btn">
+              데이터 가져오기
+              <input type="file" id="importData" accept=".json" style="display:none">
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Notification Permission Banner -->
